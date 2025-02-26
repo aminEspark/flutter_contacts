@@ -219,7 +219,8 @@ class FlutterContacts {
             fun getString(col: String): String {
                 val index = cursor.getColumnIndex(col)
                 return if (index != -1) cursor.getString(index) ?: "" else ""
-            }            fun getInt(col: String): Int = cursor.getInt(cursor.getColumnIndex(col)) ?: 0
+            }
+            fun getInt(col: String): Int = cursor.getInt(cursor.getColumnIndex(col)) ?: 0
             fun getBool(col: String): Boolean = getInt(col) == 1
 
             while (cursor.moveToNext()) {
