@@ -897,14 +897,24 @@ class FlutterContacts {
         }
 
         private fun getEmailLabel(cursor: Cursor): String {
-            val type = cursor.getInt(cursor.getColumnIndex(Email.TYPE))
-            return when (type) {
-                Email.TYPE_CUSTOM -> "custom"
-                Email.TYPE_HOME -> "home"
-                Email.TYPE_MOBILE -> "mobile"
-                Email.TYPE_OTHER -> "other"
-                Email.TYPE_WORK -> "work"
-                else -> "home"
+            return try {
+                val columnIndex = cursor.getColumnIndex(Email.TYPE)
+                if (columnIndex != -1) {
+                    val type = cursor.getInt(columnIndex)
+                    when (type) {
+                        Email.TYPE_CUSTOM -> "custom"
+                        Email.TYPE_HOME -> "home"
+                        Email.TYPE_MOBILE -> "mobile"
+                        Email.TYPE_OTHER -> "other"
+                        Email.TYPE_WORK -> "work"
+                        else -> "home"
+                    }
+                } else {
+                    "home" // Default label if column is missing
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                "home" // Fallback to default in case of an error
             }
         }
 
