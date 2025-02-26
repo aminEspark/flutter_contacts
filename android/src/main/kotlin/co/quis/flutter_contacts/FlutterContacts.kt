@@ -216,7 +216,7 @@ class FlutterContacts {
             // Maps contact ID to its index in `contacts`.
             var index = mutableMapOf<String, Int>()
 
-            fun getString(col: String): String = col == -1? "":cursor.getString(cursor.getColumnIndex(col)) ?: ""
+            fun getString(col: String): String = cursor.getString(cursor.getColumnIndex((col == -1 ||col == null)? "" : col)) ?: ""
             fun getInt(col: String): Int = cursor.getInt(cursor.getColumnIndex(col)) ?: 0
             fun getBool(col: String): Boolean = getInt(col) == 1
 
