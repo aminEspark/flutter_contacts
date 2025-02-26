@@ -794,7 +794,7 @@ class FlutterContacts {
                 val id = if (idIndex != -1) cursor.getString(idIndex) ?: "" else ""
                 val name = if (nameIndex != -1) cursor.getString(nameIndex) ?: "" else ""
 
-                contacts.add(Contact(id, name, [],false))
+                contacts.add(Contact(id, name))
             }
 
             cursor.close()
