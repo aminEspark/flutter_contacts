@@ -789,11 +789,11 @@ class FlutterContacts {
             while (cursor.moveToNext()) {
                 val idIndex = cursor.getColumnIndex(Contacts._ID)
                 val nameIndex = cursor.getColumnIndex(Contacts.DISPLAY_NAME_PRIMARY)
-                val starredIndex = cursor.getColumnIndex(Contacts.STARRED) // Correct column for "isStarred"
+                val starredIndex = cursor.getColumnIndex(Contacts.DISPLAY_NAME_PRIMARY)
 
                 val id = if (idIndex != -1) cursor.getString(idIndex) ?: "" else ""
                 val name = if (nameIndex != -1) cursor.getString(nameIndex) ?: "" else ""
-                val isStarred = if (starredIndex != -1) cursor.getInt(starredIndex) == 1 else false
+                val isStarred = isStarred = (cursor.getInt(cursor.getColumnIndex(Contacts.DISPLAY_NAME_PRIMARY)) ?: 0) == 0
 
                 contacts.add(Contact(id, name, isStarred))
             }
