@@ -264,9 +264,11 @@ class FlutterContacts {
 
                 // Thumbnails.
                 if (withThumbnail && mimetype == Photo.CONTENT_ITEM_TYPE) {
-                    contact.thumbnail = cursor.getBlob(cursor.getColumnIndex(Photo.PHOTO))
+                    val index = cursor.getColumnIndex(Photo.PHOTO)
+                    if (index != -1) {
+                        contact.thumbnail = cursor.getBlob(index) ?: byteArrayOf()  // Handle null case safely
+                    }
                 }
-
                 // All properties (phones, emails, etc).
                 if (withProperties) {
                     if (withAccounts) {
