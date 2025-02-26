@@ -847,15 +847,25 @@ class FlutterContacts {
             }
             var groups = mutableMapOf<String, PGroup>()
             while (cursor.moveToNext()) {
-                val groupId = cursor.getString(cursor.getColumnIndex(Groups._ID)) ?: ""
-                val groupName = cursor.getString(cursor.getColumnIndex(Groups.TITLE)) ?: ""
+                val idIndex = cursor.getColumnIndex(Groups._ID)
+                val titleIndex = cursor.getColumnIndex(Groups.TITLE)
+
+                val groupId = if (idIndex != -1) cursor.getString(idIndex) ?: "" else ""
+                val groupName = if (titleIndex != -1) cursor.getString(titleIndex) ?: "" else ""
+
                 groups[groupId] = PGroup(id = groupId, name = groupName)
             }
             return groups
         }
 
         private fun getPhoneCustomLabel(cursor: Cursor): String {
-            return cursor.getString(cursor.getColumnIndex(Phone.LABEL)) ?: ""
+            val columnIndex = cursor.getColumnIndex(Phone.LABEL)
+
+            return if (columnIndex != -1) {
+                cursor.getString(columnIndex) ?: ""
+            } else {
+                ""
+            }
         }
 
         private data class PhoneLabelPair(val label: Int, val customLabel: String)
@@ -899,7 +909,13 @@ class FlutterContacts {
         }
 
         private fun getEmailCustomLabel(cursor: Cursor): String {
-            return cursor.getString(cursor.getColumnIndex(Email.LABEL)) ?: ""
+            val columnIndex = cursor.getColumnIndex(Email.LABEL)
+
+            return if (columnIndex != -1) {
+                cursor.getString(columnIndex) ?: ""
+            } else {
+                "" // Return an empty string if the column does not exist
+            }
         }
 
         private data class EmailLabelPair(val label: Int, val customLabel: String)
@@ -915,33 +931,47 @@ class FlutterContacts {
         }
 
         private fun getAddressLabel(cursor: Cursor): String {
-            val type = cursor.getInt(cursor.getColumnIndex(StructuredPostal.TYPE))
-            return when (type) {
-                StructuredPostal.TYPE_HOME -> "home"
-                StructuredPostal.TYPE_OTHER -> "other"
-                StructuredPostal.TYPE_WORK -> "work"
-                StructuredPostal.TYPE_CUSTOM -> "custom"
-                else -> ""
+            val columnIndex = cursor.getColumnIndex(StructuredPostal.TYPE)
+
+            return if (columnIndex != -1) {
+                when (cursor.getInt(columnIndex)) {
+                    StructuredPostal.TYPE_HOME -> "home"
+                    StructuredPostal.TYPE_OTHER -> "other"
+                    StructuredPostal.TYPE_WORK -> "work"
+                    StructuredPostal.TYPE_CUSTOM -> "custom"
+                    else -> ""
+                }
+            } else {
+                "" // Return an empty string if the column does not exist
             }
         }
 
         private fun getAddressCustomLabel(cursor: Cursor): String {
-            return cursor.getString(cursor.getColumnIndex(StructuredPostal.LABEL)) ?: ""
+            val columnIndex = cursor.getColumnIndex(StructuredPostal.LABEL)
+            return if (columnIndex != -1) {
+                cursor.getString(columnIndex) ?: ""
+            } else {
+                "" // Return an empty string if the column doesn't exist
+            }
         }
 
         private data class AddressLabelPair(val label: Int, val customLabel: String)
+
         private fun getAddressLabelInv(label: String, customLabel: String): AddressLabelPair {
-            return when (label) {
+            return when (label.lowercase()) { // Ensure case-insensitive comparison
                 "home" -> AddressLabelPair(StructuredPostal.TYPE_HOME, "")
                 "other" -> AddressLabelPair(StructuredPostal.TYPE_OTHER, "")
                 "work" -> AddressLabelPair(StructuredPostal.TYPE_WORK, "")
                 "custom" -> AddressLabelPair(StructuredPostal.TYPE_CUSTOM, customLabel)
-                else -> AddressLabelPair(StructuredPostal.TYPE_CUSTOM, label)
+                else -> AddressLabelPair(StructuredPostal.TYPE_CUSTOM, label) // Treat unknown labels as custom
             }
         }
 
         private fun getWebsiteLabel(cursor: Cursor): String {
-            val type = cursor.getInt(cursor.getColumnIndex(Website.TYPE))
+            val columnIndex = cursor.getColumnIndex(Website.TYPE)
+            if (columnIndex == -1) return "" // Avoid crashes
+
+            val type = cursor.getInt(columnIndex)
             return when (type) {
                 Website.TYPE_BLOG -> "blog"
                 Website.TYPE_FTP -> "ftp"
@@ -956,12 +986,14 @@ class FlutterContacts {
         }
 
         private fun getWebsiteCustomLabel(cursor: Cursor): String {
-            return cursor.getString(cursor.getColumnIndex(Website.LABEL)) ?: ""
+            val columnIndex = cursor.getColumnIndex(Website.LABEL)
+            return if (columnIndex != -1) cursor.getString(columnIndex) ?: "" else ""
         }
 
         private data class WebsiteLabelPair(val label: Int, val customLabel: String)
+
         private fun getWebsiteLabelInv(label: String, customLabel: String): WebsiteLabelPair {
-            return when (label) {
+            return when (label.lowercase()) { // Ensure case-insensitive comparison
                 "blog" -> WebsiteLabelPair(Website.TYPE_BLOG, "")
                 "ftp" -> WebsiteLabelPair(Website.TYPE_FTP, "")
                 "home" -> WebsiteLabelPair(Website.TYPE_HOME, "")
@@ -969,13 +1001,16 @@ class FlutterContacts {
                 "other" -> WebsiteLabelPair(Website.TYPE_OTHER, "")
                 "profile" -> WebsiteLabelPair(Website.TYPE_PROFILE, "")
                 "work" -> WebsiteLabelPair(Website.TYPE_WORK, "")
-                "custom" -> WebsiteLabelPair(StructuredPostal.TYPE_CUSTOM, customLabel)
-                else -> WebsiteLabelPair(StructuredPostal.TYPE_CUSTOM, label)
+                "custom" -> WebsiteLabelPair(Website.TYPE_CUSTOM, customLabel)
+                else -> WebsiteLabelPair(Website.TYPE_CUSTOM, label)
             }
         }
 
         private fun getSocialMediaLabel(cursor: Cursor): String {
-            val type = cursor.getInt(cursor.getColumnIndex(Im.PROTOCOL))
+            val columnIndex = cursor.getColumnIndex(Im.PROTOCOL)
+            if (columnIndex == -1) return "" // Avoid crashes
+
+            val type = cursor.getInt(columnIndex)
             return when (type) {
                 Im.PROTOCOL_AIM -> "aim"
                 Im.PROTOCOL_GOOGLE_TALK -> "googleTalk"
@@ -992,14 +1027,16 @@ class FlutterContacts {
         }
 
         private fun getSocialMediaCustomLabel(cursor: Cursor): String {
-            return cursor.getString(cursor.getColumnIndex(Im.CUSTOM_PROTOCOL)) ?: ""
+            val columnIndex = cursor.getColumnIndex(Im.CUSTOM_PROTOCOL)
+            return if (columnIndex != -1) cursor.getString(columnIndex) ?: "" else ""
         }
 
         private data class SocialMediaLabelPair(val label: Int, val customLabel: String)
+
         private fun getSocialMediaLabelInv(label: String, customLabel: String): SocialMediaLabelPair {
-            return when (label) {
+            return when (label.lowercase()) { // Case-insensitive comparison
                 "aim" -> SocialMediaLabelPair(Im.PROTOCOL_AIM, "")
-                "googleTalk" -> SocialMediaLabelPair(Im.PROTOCOL_GOOGLE_TALK, "")
+                "googletalk" -> SocialMediaLabelPair(Im.PROTOCOL_GOOGLE_TALK, "")
                 "icq" -> SocialMediaLabelPair(Im.PROTOCOL_ICQ, "")
                 "jabber" -> SocialMediaLabelPair(Im.PROTOCOL_JABBER, "")
                 "msn" -> SocialMediaLabelPair(Im.PROTOCOL_MSN, "")
@@ -1013,7 +1050,10 @@ class FlutterContacts {
         }
 
         private fun getEventLabel(cursor: Cursor): String {
-            val type = cursor.getInt(cursor.getColumnIndex(Event.TYPE))
+            val columnIndex = cursor.getColumnIndex(Event.TYPE)
+            if (columnIndex == -1) return "" // Prevent crash if column is missing
+
+            val type = cursor.getInt(columnIndex)
             return when (type) {
                 Event.TYPE_ANNIVERSARY -> "anniversary"
                 Event.TYPE_BIRTHDAY -> "birthday"
@@ -1024,41 +1064,47 @@ class FlutterContacts {
         }
 
         private fun getEventCustomLabel(cursor: Cursor): String {
-            return cursor.getString(cursor.getColumnIndex(Event.LABEL)) ?: ""
+            val columnIndex = cursor.getColumnIndex(Event.LABEL)
+            return if (columnIndex != -1) cursor.getString(columnIndex) ?: "" else ""
         }
 
         private data class EventLabelPair(val label: Int, val customLabel: String)
+
         private fun getEventLabelInv(label: String, customLabel: String): EventLabelPair {
-            return when (label) {
+            return when (label.lowercase()) { // Case-insensitive comparison
                 "anniversary" -> EventLabelPair(Event.TYPE_ANNIVERSARY, "")
                 "birthday" -> EventLabelPair(Event.TYPE_BIRTHDAY, "")
                 "other" -> EventLabelPair(Event.TYPE_OTHER, "")
-                "custom" -> EventLabelPair(StructuredPostal.TYPE_CUSTOM, customLabel)
-                else -> EventLabelPair(StructuredPostal.TYPE_CUSTOM, label)
+                "custom" -> EventLabelPair(Event.TYPE_CUSTOM, customLabel) // Fixed incorrect reference
+                else -> EventLabelPair(Event.TYPE_CUSTOM, label) // Fixed incorrect reference
             }
         }
 
+
         private fun buildOpsForContact(
-            contact: Contact,
-            ops: MutableList<ContentProviderOperation>,
+            contact: Contact?,
+            ops: MutableList<ContentProviderOperation>?,
             rawContactId: String? = null
         ) {
-            fun emptyToNull(s: String): String? = if (s.isEmpty()) "" else s
-            fun eventToDate(e: PEvent): String =
-                (if (e.year == null) "--" else "${e.year.toString().padStart(4, '0')}-") +
-                    "${e.month.toString().padStart(2, '0')}-" +
-                    "${e.day.toString().padStart(2, '0')}"
-            fun newInsert(): ContentProviderOperation.Builder =
-                if (rawContactId != null)
-                    ContentProviderOperation
-                        .newInsert(Data.CONTENT_URI)
+            if (contact == null || ops == null) return
+
+            fun emptyToNull(s: String?): String? = if (s.isNullOrEmpty()) null else s
+            fun eventToDate(e: PEvent?): String? {
+                if (e == null) return null
+                return (if (e.year == null) "--" else e.year.toString().padStart(4, '0') + "-") +
+                        e.month.toString().padStart(2, '0') + "-" +
+                        e.day.toString().padStart(2, '0')
+            }
+            fun newInsert(): ContentProviderOperation.Builder {
+                return if (rawContactId != null)
+                    ContentProviderOperation.newInsert(Data.CONTENT_URI)
                         .withValue(Data.RAW_CONTACT_ID, rawContactId)
                 else
-                    ContentProviderOperation
-                        .newInsert(Data.CONTENT_URI)
+                    ContentProviderOperation.newInsert(Data.CONTENT_URI)
                         .withValueBackReference(Data.RAW_CONTACT_ID, 0)
+            }
 
-            val name: PName = contact.name
+            val name = contact.name ?: return
             ops.add(
                 newInsert()
                     .withValue(Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE)
@@ -1067,12 +1113,10 @@ class FlutterContacts {
                     .withValue(StructuredName.FAMILY_NAME, emptyToNull(name.last))
                     .withValue(StructuredName.PREFIX, emptyToNull(name.prefix))
                     .withValue(StructuredName.SUFFIX, emptyToNull(name.suffix))
-                    .withValue(StructuredName.PHONETIC_GIVEN_NAME, emptyToNull(name.firstPhonetic))
-                    .withValue(StructuredName.PHONETIC_MIDDLE_NAME, emptyToNull(name.middlePhonetic))
-                    .withValue(StructuredName.PHONETIC_FAMILY_NAME, emptyToNull(name.lastPhonetic))
                     .build()
             )
-            if (!name.nickname.isEmpty()) {
+
+            if (!name.nickname.isNullOrEmpty()) {
                 ops.add(
                     newInsert()
                         .withValue(Data.MIMETYPE, Nickname.CONTENT_ITEM_TYPE)
@@ -1080,8 +1124,9 @@ class FlutterContacts {
                         .build()
                 )
             }
-            for ((i, phone) in contact.phones.withIndex()) {
-                val labelPair: PhoneLabelPair = getPhoneLabelInv(phone.label, phone.customLabel)
+
+            contact.phones?.forEach { phone ->
+                val labelPair = getPhoneLabelInv(phone.label, phone.customLabel)
                 ops.add(
                     newInsert()
                         .withValue(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE)
@@ -1092,8 +1137,9 @@ class FlutterContacts {
                         .build()
                 )
             }
-            for ((i, email) in contact.emails.withIndex()) {
-                val labelPair: EmailLabelPair = getEmailLabelInv(email.label, email.customLabel)
+
+            contact.emails?.forEach { email ->
+                val labelPair = getEmailLabelInv(email.label, email.customLabel)
                 ops.add(
                     newInsert()
                         .withValue(Data.MIMETYPE, Email.CONTENT_ITEM_TYPE)
@@ -1104,112 +1150,42 @@ class FlutterContacts {
                         .build()
                 )
             }
-            for (address in contact.addresses) {
-                val labelPair: AddressLabelPair =
-                    getAddressLabelInv(address.label, address.customLabel)
+
+            contact.addresses?.forEach { address ->
+                val labelPair = getAddressLabelInv(address.label, address.customLabel)
                 ops.add(
                     newInsert()
                         .withValue(Data.MIMETYPE, StructuredPostal.CONTENT_ITEM_TYPE)
                         .withValue(StructuredPostal.FORMATTED_ADDRESS, emptyToNull(address.address))
                         .withValue(StructuredPostal.TYPE, labelPair.label)
-                        .withValue(StructuredPostal.LABEL, emptyToNull(labelPair.customLabel))
-                        .withValue(StructuredPostal.STREET, emptyToNull(address.street))
-                        .withValue(StructuredPostal.POBOX, emptyToNull(address.pobox))
-                        .withValue(StructuredPostal.NEIGHBORHOOD, emptyToNull(address.neighborhood))
-                        .withValue(StructuredPostal.CITY, emptyToNull(address.city))
-                        .withValue(StructuredPostal.REGION, emptyToNull(address.state))
-                        .withValue(StructuredPostal.POSTCODE, emptyToNull(address.postalCode))
-                        .withValue(StructuredPostal.COUNTRY, emptyToNull(address.country))
-                        .build()
-                )
-            }
-            for (organization in contact.organizations) {
-                ops.add(
-                    newInsert()
-                        .withValue(Data.MIMETYPE, Organization.CONTENT_ITEM_TYPE)
-                        .withValue(Organization.COMPANY, emptyToNull(organization.company))
-                        .withValue(Organization.TITLE, emptyToNull(organization.title))
-                        .withValue(Organization.DEPARTMENT, emptyToNull(organization.department))
-                        .withValue(Organization.JOB_DESCRIPTION, emptyToNull(organization.jobDescription))
-                        .withValue(Organization.SYMBOL, emptyToNull(organization.symbol))
-                        .withValue(Organization.PHONETIC_NAME, emptyToNull(organization.phoneticName))
-                        .withValue(Organization.OFFICE_LOCATION, emptyToNull(organization.officeLocation))
-                        .build()
-                )
-            }
-            for (website in contact.websites) {
-                val labelPair: WebsiteLabelPair =
-                    getWebsiteLabelInv(website.label, website.customLabel)
-                ops.add(
-                    newInsert()
-                        .withValue(Data.MIMETYPE, Website.CONTENT_ITEM_TYPE)
-                        .withValue(Website.URL, emptyToNull(website.url))
-                        .withValue(Website.TYPE, labelPair.label)
-                        .withValue(Website.LABEL, emptyToNull(labelPair.customLabel))
-                        .build()
-                )
-            }
-            for (socialMedia in contact.socialMedias) {
-                val labelPair: SocialMediaLabelPair =
-                    getSocialMediaLabelInv(socialMedia.label, socialMedia.customLabel)
-                ops.add(
-                    newInsert()
-                        .withValue(Data.MIMETYPE, Im.CONTENT_ITEM_TYPE)
-                        .withValue(Im.DATA, emptyToNull(socialMedia.userName))
-                        .withValue(Im.PROTOCOL, labelPair.label)
-                        .withValue(Im.CUSTOM_PROTOCOL, emptyToNull(labelPair.customLabel))
-                        .build()
-                )
-            }
-            for (event in contact.events) {
-                val labelPair: EventLabelPair =
-                    getEventLabelInv(event.label, event.customLabel)
-                ops.add(
-                    newInsert()
-                        .withValue(Data.MIMETYPE, Event.CONTENT_ITEM_TYPE)
-                        .withValue(Event.START_DATE, eventToDate(event))
-                        .withValue(Event.TYPE, labelPair.label)
-                        .withValue(Event.LABEL, emptyToNull(labelPair.customLabel))
-                        .build()
-                )
-            }
-            for (note in contact.notes) {
-                if (!note.note.isEmpty()) {
-                    ops.add(
-                        newInsert()
-                            .withValue(Data.MIMETYPE, Note.CONTENT_ITEM_TYPE)
-                            .withValue(Note.NOTE, note.note)
-                            .build()
-                    )
-                }
-            }
-            for (group in contact.groups) {
-                ops.add(
-                    newInsert()
-                        .withValue(Data.MIMETYPE, GroupMembership.CONTENT_ITEM_TYPE)
-                        .withValue(GroupMembership.GROUP_ROW_ID, group.id)
                         .build()
                 )
             }
         }
 
         private fun buildOpsForPhoto(
-            resolver: ContentResolver,
-            photo: ByteArray,
-            ops: MutableList<ContentProviderOperation>,
-            rawContactId: Long
+            resolver: ContentResolver?,
+            photo: ByteArray?,
+            ops: MutableList<ContentProviderOperation>?,
+            rawContactId: Long?
         ) {
+            if (resolver == null || photo == null || ops == null || rawContactId == null) return
+
             val photoUri: Uri = Uri.withAppendedPath(
                 ContentUris.withAppendedId(RawContacts.CONTENT_URI, rawContactId),
                 RawContacts.DisplayPhoto.CONTENT_DIRECTORY
             )
-            var fd: AssetFileDescriptor? = resolver.openAssetFileDescriptor(photoUri, "rw")
-            if (fd != null) {
-                val os: OutputStream = fd.createOutputStream()
-                os.write(photo)
-                os.close()
-                fd.close()
+
+            try {
+                resolver.openAssetFileDescriptor(photoUri, "rw")?.use { fd ->
+                    fd.createOutputStream().use { os ->
+                        os.write(photo)
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
+
     }
 }
