@@ -72,10 +72,7 @@ class FlutterContacts {
             if (!cursor.moveToNext()) {
                 return null
             }
-            fun getString(col: String): String {
-                val index = cursor.getColumnIndex(col)
-                return if (index != -1) cursor.getString(index) ?: "" else ""
-            }
+            fun getString(col: String): String = cursor.getString(cursor.getColumnIndex((col == -1 ||col == null)? "" : col)) ?: ""
             val id = getString(Data.CONTACT_ID)
             cursor.close()
             return id
