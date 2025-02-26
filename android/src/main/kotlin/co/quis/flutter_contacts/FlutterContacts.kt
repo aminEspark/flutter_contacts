@@ -802,7 +802,8 @@ class FlutterContacts {
         }
 
         private fun getPhoneLabel(cursor: Cursor): String {
-            val type = cursor.getInt(cursor.getColumnIndex(Phone.TYPE))
+            val typeIndex = cursor.getColumnIndex(Phone.TYPE)
+            val type = if (typeIndex != -1) cursor.getInt(typeIndex) else -1
             return when (type) {
                 Phone.TYPE_ASSISTANT -> "assistant"
                 Phone.TYPE_CALLBACK -> "callback"
