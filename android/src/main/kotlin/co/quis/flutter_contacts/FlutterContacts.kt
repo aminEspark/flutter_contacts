@@ -72,7 +72,10 @@ class FlutterContacts {
             if (!cursor.moveToNext()) {
                 return null
             }
-            fun getString(col: String): String = cursor.getString(cursor.getColumnIndex(col)) ?: ""
+            fun getString(col: String): String {
+                val index = cursor.getColumnIndex(col)
+                return if (index != -1) cursor.getString(index) ?: "" else ""
+            }
             val id = getString(Data.CONTACT_ID)
             cursor.close()
             return id
@@ -213,8 +216,10 @@ class FlutterContacts {
             // Maps contact ID to its index in `contacts`.
             var index = mutableMapOf<String, Int>()
 
-            fun getString(col: String): String = cursor.getString(cursor.getColumnIndex(col)) ?: ""
-            fun getInt(col: String): Int = cursor.getInt(cursor.getColumnIndex(col)) ?: 0
+            fun getString(col: String): String {
+                val index = cursor.getColumnIndex(col)
+                return if (index != -1) cursor.getString(index) ?: "" else ""
+            }            fun getInt(col: String): Int = cursor.getInt(cursor.getColumnIndex(col)) ?: 0
             fun getBool(col: String): Boolean = getInt(col) == 1
 
             while (cursor.moveToNext()) {
