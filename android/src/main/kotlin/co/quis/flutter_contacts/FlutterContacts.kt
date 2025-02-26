@@ -787,13 +787,15 @@ class FlutterContacts {
             }
 
             while (cursor.moveToNext()) {
-                contacts.add(
-                    Contact(
-                        /*id=*/(cursor.getString(cursor.getColumnIndex(Contacts._ID)) ?: ""),
-                        /*displayName=*/(cursor.getString(cursor.getColumnIndex(Contacts.DISPLAY_NAME_PRIMARY)) ?: ""),
-                        isStarred = (cursor.getInt(cursor.getColumnIndex(Contacts.DISPLAY_NAME_PRIMARY)) ?: 0) == 0
-                    )
-                )
+                val idIndex = cursor.getColumnIndex(Contacts._ID)
+                val nameIndex = cursor.getColumnIndex(Contacts.DISPLAY_NAME_PRIMARY)
+                val starredIndex = cursor.getColumnIndex(Contacts.STARRED) // Correct column for "isStarred"
+
+                val id = if (idIndex != -1) cursor.getString(idIndex) ?: "" else ""
+                val name = if (nameIndex != -1) cursor.getString(nameIndex) ?: "" else ""
+                val isStarred = if (starredIndex != -1) cursor.getInt(starredIndex) == 1 else false
+
+                contacts.add(Contact(id, name, isStarred))
             }
 
             cursor.close()
