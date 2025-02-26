@@ -793,7 +793,7 @@ class FlutterContacts {
 
                 val id = if (idIndex != -1) cursor.getString(idIndex) ?: "" else ""
                 val name = if (nameIndex != -1) cursor.getString(nameIndex) ?: "" else ""
-                val isStarred = isStarred = (cursor.getInt(cursor.getColumnIndex(Contacts.DISPLAY_NAME_PRIMARY)) ?: 0) == 0
+                val isStarred = false
 
                 contacts.add(Contact(id, name, isStarred))
             }
