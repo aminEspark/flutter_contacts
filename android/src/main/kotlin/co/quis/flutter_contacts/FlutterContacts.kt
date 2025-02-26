@@ -222,7 +222,11 @@ class FlutterContacts {
                 val index = cursor.getColumnIndex(col)
                 return if (index == -1) "" else cursor.getString(index) ?: ""
             }
-            fun getInt(col: String): Int = cursor.getInt(cursor.getColumnIndex(col)) ?: 0
+            fun getInt(col: String?): Int {
+                if (col.isNullOrEmpty()) return 0  // Handle null or empty column names
+                val index = cursor.getColumnIndex(col)
+                return if (index == -1) 0 else cursor.getInt(index)  // Prevents accessing an invalid index
+            }
             fun getBool(col: String): Boolean = getInt(col) == 1
 
             while (cursor.moveToNext()) {
